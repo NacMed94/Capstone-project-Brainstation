@@ -31,7 +31,17 @@ def basic_eda(df, df_name = 'dataframe', showc = True):
     print()
     print(df.info(show_counts = showc))
     
+    
+def digit_checker(df, d_min = 0, d_max = 6):
+    for i in range(d_min,d_max):
+        d_no = 10**i
 
+        validndc_bool = df.ndc>=d_no
+        print(f'% of NDCs >= 10^{i}:', round(validndc_bool.sum()/len(df)*100,2))
+        print('Number of NDCs:', df.ndc[validndc_bool].nunique(),'\n')
+    
+    
+    
 
 def cat_check (df,cat = 'A', ratio = True, cl = -1): 
     '''
@@ -58,7 +68,7 @@ def cat_filler(df,filler_col,cat = list('ABCDGHJLMNPRSV')):
     # Setting the index as the filler column for update to work
     df.set_index(filler_col,inplace = True, drop = False)
     # Updating the dataframe only on negative values 
-    df.update(cat_filler, filter_func = lambda x: x == -1)
+    df.update(cat_filler, filter_func = lambda x: x == -1, overwrite = False)
     # Setting categorical columns as int8 again
     catcol.pop()
     df[catcol] = df[catcol].astype('int8')
@@ -98,7 +108,7 @@ def rec_cat_filler(df, filler_cols, cat = list('ABCDGHJLMNPRSV')):
                 break
 
         exploded = exploded.set_index('index')[catcols].groupby('index').max()
-        df.update(exploded,filter_func=lambda x: x == -1) # Updating into main df
+        df.update(exploded,filter_func=lambda x: x == -1, overwrite = False) # Updating into main df
         new_missing_cats = cat_check(df)*100
 
         print(f'\nLoop #{i}, missing values % after re-imploding df:',new_missing_cats)
@@ -131,10 +141,11 @@ def display_sbs(dfs_list, max_rows = 200, suffix = 'table', titles = ['']):
             title = (df.columns.values + ', ').sum()[:-2] + ' ' + suffix
         else:
             title = titles[i]
-    
-        prints_no = int(np.ceil(len(df)/max_rows)) if len(df) >= max_rows else 1
+        
         first_row = 0
-        last_row = max_rows - 1
+        last_row = max_rows
+        prints_no = int(np.ceil(len(df)/max_rows)) if len(df) >= max_rows else 1
+        
         for _ in range(prints_no):
             df_s = df.iloc[first_row:last_row]
             # First converted to style, adding caption 
@@ -144,6 +155,7 @@ def display_sbs(dfs_list, max_rows = 200, suffix = 'table', titles = ['']):
 
             first_row = copy.copy(last_row)
             last_row += max_rows
+            title = '' # After first loop title is empty
             
     # And displayed using display_html
     display_html(html_tables,raw = True)
