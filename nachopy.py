@@ -136,7 +136,7 @@ def display_sbs(dfs_list, max_rows = 200, suffix = 'table', titles = ['']):
             df = df.to_frame()
         
         # If titles undefined or not enough titles
-        if titles == None or i >= len(titles):
+        if titles == [''] or i >= len(titles):
             # title equal to the string-sum of column names with commas (removing last comma with [-2]) + _suffix
             title = (df.columns.values + ', ').sum()[:-2] + ' ' + suffix
         else:
@@ -163,6 +163,51 @@ def display_sbs(dfs_list, max_rows = 200, suffix = 'table', titles = ['']):
     pass 
   
 
+
+def roc_n_confusion(fittedgrid, X_ts, y_ts, titles = ['',''], normalize = 'true',plots = True,ret = False):
+    '''
+    This function takes a grid and prints and returns best cv and test scores.
+    Also lots the ROC and the confusion matrix (using RocCurveDisplay and ConfusionMatrixDisplay 
+    from sklearn) if plots = True. Titles can be passed as list of two strings.
+    '''
+
+    # Imports
+    from sklearn.metrics import RocCurveDisplay
+    from sklearn.metrics import ConfusionMatrixDisplay
+    from sklearn.pipeline import Pipeline
+
+    # Scoring from provided dataset
+    test_score = fittedgrid.score(X_ts, y_ts)
+    print("Best model's CV score:",fittedgrid.best_score_)
+    print("Best model's test score",test_score)
+    print("Baseline model (score of a model that always predicts 1)",y_ts.mean())
+
+    if plots:
+
+        plt.subplots(1,2)
+
+        # First plot is confusion matrix, using a fitted grid and the datasets
+        ax_conf = plt.subplot(1,2,1)
+        ConfusionMatrixDisplay.from_estimator(fittedgrid, X_ts, y_ts, ax = ax_conf, normalize = 'true')
+        plt.grid(False)
+        plt.title(titles[0],pad = 10)
+
+        # Second plot is the roc
+        ax_roc = plt.subplot(1,2,2)
+        RocCurveDisplay.from_estimator(fittedgrid, X_ts, y_ts, ax = ax_roc)
+        plt.title(titles[1],pad = 10)
+        plt.xlabel('False positive rate')
+        plt.ylabel('True positive rate')
+
+        plt.tight_layout()
+        plt.show()
+
+    if ret:
+        return (fittedgrid.best_score_, test_score)
+
+    
+    
+    
 def label_eval(df, col, title = '', ylab = '',  y = 'Reviewer_Score'):
     
     '''
