@@ -161,7 +161,47 @@ def display_sbs(dfs_list, max_rows = 200, suffix = 'table', titles = ['']):
     display_html(html_tables,raw = True)
     
     pass 
-  
+
+
+
+def change_all(X_tr, y_tr, *X_ts, *y_ts, condition, feature = 'target', change = 'drop', modify = True):
+     
+    if feature == 'target':
+        ind_tr = y_tr.index[condition(y_tr)]
+        ind_ts = y_ts.index[condition(y_ts)]
+    else:
+        ind_tr = X_tr.index[condition(X_tr[feature])]
+        ind_ts = X_ts.index[condition(X_ts[feature])]
+    
+    if modify:
+
+        if change == 'drop':
+            X_tr.drop(ind_tr, inplace = True)
+            y_tr.drop(ind_tr, inplace = True)
+            X_ts.drop(ind_ts, inplace = True)
+            y_ts.drop(ind_ts, inplace = True)
+
+        else:
+            X_tr.loc[ind_tr, feature] = change
+            X_ts.loc[ind_ts, feature] = change
+        
+    else:
+        
+        if change == 'drop':
+            X_tr_mod = X_tr.drop(ind_tr)
+            y_tr_mod = y_tr.drop(ind_tr)
+            X_ts_mod = X_ts.drop(ind_ts)
+            y_ts_mod = y_ts.drop(ind_ts)
+
+        else:
+            X_tr_mod = X_tr.copy()
+            X_ts_mod = X_ts.copy()
+            
+            X_tr_mod.loc[ind_tr, feature] = change
+            X_ts_mod.loc[ind_ts, feature] = change
+         
+        return X_tr_mod, X_ts_mod, y_tr_mod, y_ts_mod
+
 
 
 def roc_n_confusion(fittedgrid, X_ts, y_ts, titles = ['',''], normalize = 'true',plots = True,ret = False):
@@ -242,5 +282,5 @@ def label_eval(df, col, title = '', ylab = '',  y = 'Reviewer_Score'):
 
     plt.tight_layout()
     plt.show()
-        
-  
+    
+    
