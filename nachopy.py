@@ -164,7 +164,7 @@ def display_sbs(dfs_list, max_rows = 200, suffix = 'table', titles = ['']):
 
 
 
-def change_all(X_tr, y_tr, *X_ts, *y_ts, condition, feature = 'target', change = 'drop', modify = True):
+def change_all(X_tr, y_tr, X_ts, y_ts, condition, feature = 'target', change = 'drop', modify = True):
      
     if feature == 'target':
         ind_tr = y_tr.index[condition(y_tr)]
