@@ -1,10 +1,12 @@
 conda create -n cap_nacho -c conda-forge scikit-learn -y
 conda activate cap_nacho -y
 conda install pandas -y
-conda install ipykernel ipywidgets -y
 conda install -c conda-forge matplotlib -y
 conda install -c anaconda seaborn -y
+conda install -c plotly plotly=4.12.0 -y
 
+conda install ipykernel ipywidgets -y
 
 # last step only needed if using nb
+
 
