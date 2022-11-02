@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 import warnings
 import copy
 
@@ -204,7 +205,7 @@ def change_all(X_tr, y_tr, X_ts, y_ts, condition, feature = 'target', change = '
 
 
 
-def roc_n_confusion(fittedgrid, X_ts, y_ts, titles = ['',''], normalize = 'true',plots = True,ret = False):
+def roc_n_confusion(fittedgrid, X_ts, y_ts, titles = ['',''], normalize = 'true',plots = True,ret = False,lbl_enc = None,incl_val = False):
     '''
     This function takes a grid and prints and returns best cv and test scores.
     Also lots the ROC and the confusion matrix (using RocCurveDisplay and ConfusionMatrixDisplay 
@@ -213,37 +214,82 @@ def roc_n_confusion(fittedgrid, X_ts, y_ts, titles = ['',''], normalize = 'true'
 
     # Imports
     from sklearn.metrics import RocCurveDisplay
-    from sklearn.metrics import ConfusionMatrixDisplay
     from sklearn.pipeline import Pipeline
+    from sklearn.metrics import ConfusionMatrixDisplay
 
     # Scoring from provided dataset
     test_score = fittedgrid.score(X_ts, y_ts)
     print("Best model's CV score:",fittedgrid.best_score_)
     print("Best model's test score",test_score)
-    print("Baseline model (score of a model that always predicts 1)",y_ts.mean())
+    
+    if len(np.unique(y_ts)) > 2: # if y_test non binary (multiclass problem)
+        
+        maj_class_prob = np.unique(y_ts,return_counts=True)[1].max()/len(y_ts)
+        print("Baseline model (score of a model that always predicts majoritary class)",round(maj_class_prob,2))
+        
+        if plots:
+            from sklearn.preprocessing import LabelBinarizer
+            
+            # First plot is confusion matrix, using a fitted grid and the datasets
+            
+            plt.figure(figsize = (4,4))
+             
+            sns.set(font_scale = 0.6)
+            
+            labels = lbl_enc.inverse_transform(np.unique(y_ts))
+            ConfusionMatrixDisplay.from_estimator(fittedgrid, X_ts, y_ts, normalize = normalize,display_labels = labels,include_values = incl_val,values_format = '.1f')
+            
+            sns.set(font_scale = 1)
 
-    if plots:
+            plt.yticks(rotation = 0,fontsize = 8)
+            plt.xticks(rotation = 90,fontsize = 8)
+            plt.grid(False)
 
-        plt.subplots(1,2)
+            plt.figure(figsize = (4,4))
+            # Second plot is the roc
+            
+            y_ts_ohe = LabelBinarizer().fit_transform(y_ts)
+            y_probs = fittedgrid.predict_proba(X_ts)
+            
+            
+            RocCurveDisplay.from_predictions(y_ts_ohe.ravel(), y_probs.ravel())
+            
+            plt.title(titles[1],pad = 10)
+            plt.xlabel('False positive rate')
+            plt.ylabel('True positive rate')
+            
+            plt.show()
 
-        # First plot is confusion matrix, using a fitted grid and the datasets
-        ax_conf = plt.subplot(1,2,1)
-        ConfusionMatrixDisplay.from_estimator(fittedgrid, X_ts, y_ts, ax = ax_conf, normalize = 'true')
-        plt.grid(False)
-        plt.title(titles[0],pad = 10)
+        if ret:
+            return (fittedgrid.best_score_, test_score)
+    
+    
+    else: # Binary classification
+        
+        print("Baseline model (score of a model that always predicts 1)",y_ts.mean())
 
-        # Second plot is the roc
-        ax_roc = plt.subplot(1,2,2)
-        RocCurveDisplay.from_estimator(fittedgrid, X_ts, y_ts, ax = ax_roc)
-        plt.title(titles[1],pad = 10)
-        plt.xlabel('False positive rate')
-        plt.ylabel('True positive rate')
+        if plots:
+            
 
-        plt.tight_layout()
-        plt.show()
+            plt.subplots(1,2)
 
-    if ret:
-        return (fittedgrid.best_score_, test_score)
+            # First plot is confusion matrix, using a fitted grid and the datasets
+            ax_conf = plt.subplot(1,2,1)
+            ConfusionMatrixDisplay.from_estimator(fittedgrid, X_ts, y_ts, ax = ax_conf, normalize = 'true')
+            plt.grid(False)
+            plt.title(titles[0],pad = 10)
+
+            # Second plot is the roc
+            ax_roc = plt.subplot(1,2,2)
+            
+            plt.title(titles[1],pad = 10)
+            plt.xlabel('False positive rate')
+            plt.ylabel('True positive rate')
+
+            plt.show()
+
+        if ret:
+            return (fittedgrid.best_score_, test_score)
 
     
     
@@ -284,3 +330,121 @@ def label_eval(df, col, title = '', ylab = '',  y = 'Reviewer_Score'):
     plt.show()
     
     
+def corr_p(df,y_col,fig_title = '',ret = False,fsize = (6,8)):
+    
+    '''
+    Objects passed are a dataframe and one or two strings. From the dataframe
+    a 'x' dataframe and a 'y' dataframe are obtained from the numerical
+    columns of df and based on column name specified on y_col.
+    Calculates the Pearson correlation coefficient (r) along with p-values 
+    using stats.pearsonr and plots them as heatmaps if a figure title
+    is specified. By default, heatmaps are not plotted. 
+
+    Parameters
+    ----------
+    df : DataFrame
+        Pandas DataFrame from which to extract x and y and calculate the
+        correlation coefficient. Categoricla columns will be ignored.
+
+    y_col : string
+        Determines column used as dependent variable. Column it addresses
+        must be numerical. 
+
+    fig_title : string
+        Title of subplots figure. If empty, no plots are calculated
+
+    Returns
+    -------
+    x: Series or DataFrame
+        Series of DataFrame with dependent variable(s) (all numerical
+        columns from df except for column y_col)
+
+    y: Series
+        Independent variable (column in df determined by y_col)
+
+    pearson_r: DataFrame
+        Includes the Pearson correlation coefficients (r) of dependent variables 
+        (x) with independent variable (y) and the p-values which indicate
+        statistical significance of r. For more info, check documentation for
+        scipy.stats.pearsonr.
+
+    Notes
+    -----
+    For columns with constant values, the correlation coefficient is not defined 
+
+    Examples
+    --------
+    >>> df = pd.DataFrame([[4, 9]] * 3, columns=['A', 'B'])
+    >>> df
+       A  B
+    0  4  9
+    1  5  2
+    2  4  7
+
+    >>> corr_p(df,'B')
+    (   
+        A
+     0  4
+     1  5
+     2  4,
+
+          B
+     0    9
+     1    2
+     2    7
+
+               r   p-value
+     A -0.960769  0.178912
+     )
+    '''
+    from scipy import stats
+
+    
+    # Only numerical columns used
+    cols_num = list(df.select_dtypes('number').columns) # List of columns of dtype number
+    num_df = df[cols_num].copy() 
+    
+    x = num_df.drop(columns = y_col) # x contains the dependent variables
+    y = num_df[y_col].copy() # y is the dependent variable
+    
+    # Pearson correlation coefficient applied columnwise 
+    pearson_r = x.apply(lambda col: stats.pearsonr(col,y))
+    # Renaming output dataframe
+    pearson_r = (pearson_r.rename({0:'r',1:'p-value'})).T  
+
+    if fig_title != '': # If third argument specified (as anything other than empty string)
+        fig,_ = plt.subplots(1,2,figsize = fsize)
+        
+        # Defining minmax to select symmetrical limits for the colormap.
+        minmax = round(max([abs(min(pearson_r['r'])),abs(max(pearson_r['r']))])+0.01,1)
+        ax_r = plt.subplot(1,2,1)
+        # Heatmap of the output r column sorted by absolute value of r
+        h_r = sns.heatmap(pearson_r.sort_values(by = 'r', key = abs, ascending = False)[['r']],
+                    cmap = 'coolwarm', 
+                    ax = ax_r, 
+                    vmin = -minmax, 
+                    vmax = minmax,
+                    annot = True,
+                    xticklabels = False
+                    )
+        plt.title('Pearson correlation coefficients of\nfeatures with dependent variable', fontsize = 11)
+
+        # Heatmat of p-values
+        ax_p = plt.subplot(1,2,2)
+        sns.heatmap(pearson_r.sort_values(by = 'r', key = abs, ascending = False)[['p-value']], 
+                    cmap = 'YlGn_r', 
+                    vmax = 0.1,
+                    vmin = 0,
+                    ax = ax_p, 
+                    annot = True, 
+                    xticklabels = False,
+                    yticklabels = False
+                    )
+        plt.title('p-values', fontsize = 11)
+        
+        fig.suptitle(fig_title) # Superior title
+        plt.show()
+    
+    if ret:
+        return x,y,pearson_r
+

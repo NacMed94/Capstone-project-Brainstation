@@ -1,9 +1,9 @@
-conda create -n cap_nacho -c conda-forge scikit-learn -y
-conda activate cap_nacho -y
-conda install pandas -y
-conda install -c conda-forge matplotlib -y
-conda install -c anaconda seaborn -y
-conda install -c plotly plotly=4.12.0 -y
+conda create -n capstone_env python numpy pandas matplotlib jupyter jupyterlab seaborn
+conda activate capstone_env
+conda install -c conda-forge scikit-learn -y
+conda install -c plotly plotly=4.12.0 -y # Not used in the end
+conda install -c conda-forge imbalanced-learn -y
+
 
 conda install ipykernel ipywidgets -y
 
