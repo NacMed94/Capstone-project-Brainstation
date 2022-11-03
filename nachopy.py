@@ -215,11 +215,14 @@ def roc_n_confusion(fittedgrid, X_ts, y_ts, titles = ['',''], normalize = 'true'
     # Imports
     from sklearn.metrics import RocCurveDisplay
     from sklearn.pipeline import Pipeline
+    from sklearn.model_selection import GridSearchCV
     from sklearn.metrics import ConfusionMatrixDisplay
 
     # Scoring from provided dataset
+  
     test_score = fittedgrid.score(X_ts, y_ts)
-    print("Best model's CV score:",fittedgrid.best_score_)
+    if isinstance(fittedgrid,GridSearchCV):
+        print("Best model's CV score:",fittedgrid.best_score_)
     print("Best model's test score",test_score)
     
     if len(np.unique(y_ts)) > 2: # if y_test non binary (multiclass problem)
@@ -419,13 +422,14 @@ def corr_p(df,y_col,fig_title = '',ret = False,fsize = (6,8)):
         minmax = round(max([abs(min(pearson_r['r'])),abs(max(pearson_r['r']))])+0.01,1)
         ax_r = plt.subplot(1,2,1)
         # Heatmap of the output r column sorted by absolute value of r
-        h_r = sns.heatmap(pearson_r.sort_values(by = 'r', key = abs, ascending = False)[['r']],
+        sns.heatmap(pearson_r.sort_values(by = 'r', key = abs, ascending = False)[['r']],
                     cmap = 'coolwarm', 
                     ax = ax_r, 
                     vmin = -minmax, 
                     vmax = minmax,
                     annot = True,
-                    xticklabels = False
+                    xticklabels = False,
+                    cbar_kws = {'aspect':round(len(pearson_r)*(3/4)),'pad': 0.01}
                     )
         plt.title('Pearson correlation coefficients of\nfeatures with dependent variable', fontsize = 11)
 
@@ -438,11 +442,14 @@ def corr_p(df,y_col,fig_title = '',ret = False,fsize = (6,8)):
                     ax = ax_p, 
                     annot = True, 
                     xticklabels = False,
-                    yticklabels = False
+                    yticklabels = False,
+                    cbar_kws = {'aspect':round(len(pearson_r)*(3/4)),'pad': 0.01}
                     )
         plt.title('p-values', fontsize = 11)
         
-        fig.suptitle(fig_title) # Superior title
+        fig.suptitle(fig_title, y = 0.94) # Superior title
+        
+        plt.subplots_adjust(wspace=0.4)
         plt.show()
     
     if ret:
