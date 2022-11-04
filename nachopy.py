@@ -205,7 +205,7 @@ def change_all(X_tr, y_tr, X_ts, y_ts, condition, feature = 'target', change = '
 
 
 
-def roc_n_confusion(fittedgrid, X_ts, y_ts, titles = ['',''], normalize = 'true',plots = True,ret = False,lbl_enc = None,incl_val = False):
+def roc_n_confusion(fittedgrid, X_ts, y_ts, titles = ['',''], normalize = 'true',plots = True,ret = False,lbl_enc = None,incl_val = True):
     '''
     This function takes a grid and prints and returns best cv and test scores.
     Also lots the ROC and the confusion matrix (using RocCurveDisplay and ConfusionMatrixDisplay 
