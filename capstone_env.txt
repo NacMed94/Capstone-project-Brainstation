@@ -1,4 +1,4 @@
-conda create -n capstone_env python numpy pandas matplotlib jupyter jupyterlab seaborn
+conda create -n capstone_env python numpy pandas matplotlib jupyter jupyterlab seaborn -y
 conda activate capstone_env
 conda install -c conda-forge scikit-learn -y
 conda install -c plotly plotly=4.12.0 -y # Not used in the end
