@@ -9,3 +9,5 @@ Merging tables is the creation of the final table. Only one stage. Includes some
 EDA (will) contain the EDA and feature selection. This is done in stages. First stage completed with a first set of features ready to try on models. A second and possibly third stage will be added to add and characterise new features (previous transfer location and granularity increase of prescriptions columns).
 
 Model optimisation notebook contains pipelines and model descriptions of different models. New features will be added as needed.
+
+Test
