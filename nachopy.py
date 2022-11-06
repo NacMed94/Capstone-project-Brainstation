@@ -44,11 +44,14 @@ def digit_checker(df, d_min = 0, d_max = 6):
     
     
 
-def cat_check (df,cat = 'A', ratio = True, cl = -1): 
+def cat_check (df,cat = None, ratio = True, cl = -1): 
     '''
     Simple function to check distribution of categories. By default returns
     % of missing values (cat = A and class(cl) = -1)
     '''
+    if cat == None:
+        cat = df.columns[-1]
+        
     if df[cat].min() >= 0:
         return 0
     else:
@@ -108,7 +111,7 @@ def rec_cat_filler(df, filler_cols, cat = list('ABCDGHJLMNPRSV')):
             if new_missing_cats == 0:
                 break
 
-        exploded = exploded.set_index('index')[catcols].groupby('index').max()
+        exploded = exploded.set_index('index')[catcols].groupby('index').max() # Imploding
         df.update(exploded,filter_func=lambda x: x == -1, overwrite = False) # Updating into main df
         new_missing_cats = cat_check(df)*100
 
