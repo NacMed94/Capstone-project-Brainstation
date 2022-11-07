@@ -211,7 +211,7 @@ def change_all(X_tr, y_tr, X_ts, y_ts, condition, feature = 'target', change = '
 def roc_n_confusion(fittedgrid, X_ts, y_ts, titles = ['',''], normalize = 'true',plots = True,ret = False,lbl_enc = None,incl_val = True):
     '''
     This function takes a grid and prints and returns best cv and test scores.
-    Also lots the ROC and the confusion matrix (using RocCurveDisplay and ConfusionMatrixDisplay 
+    Also plots the ROC and the confusion matrix (using RocCurveDisplay and ConfusionMatrixDisplay 
     from sklearn) if plots = True. Titles can be passed as list of two strings.
     '''
 
@@ -277,21 +277,22 @@ def roc_n_confusion(fittedgrid, X_ts, y_ts, titles = ['',''], normalize = 'true'
         if plots:
             
 
-            plt.subplots(1,2)
+            plt.subplots(1,2,figsize = (12,5))
 
             # First plot is confusion matrix, using a fitted grid and the datasets
             ax_conf = plt.subplot(1,2,1)
             ConfusionMatrixDisplay.from_estimator(fittedgrid, X_ts, y_ts, ax = ax_conf, normalize = 'true')
             plt.grid(False)
             plt.title(titles[0],pad = 10)
-
+    
             # Second plot is the roc
             ax_roc = plt.subplot(1,2,2)
+            RocCurveDisplay.from_estimator(fittedgrid, X_ts, y_ts, ax = ax_roc)
             
             plt.title(titles[1],pad = 10)
             plt.xlabel('False positive rate')
             plt.ylabel('True positive rate')
-
+            
             plt.show()
 
         if ret:
